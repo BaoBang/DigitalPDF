@@ -42,8 +42,6 @@ public class PanelListOrder extends javax.swing.JPanel {
         java.awt.EventQueue.invokeLater(() -> {
             frame.showLoading("Tải danh sách file");
         });
-        
-
         frame.getAPIService().getBills(new GetFileBody(frame.getId())).enqueue(new Callback<Result<List<String>>>() {
             @Override
             public void onResponse(Call<Result<List<String>>> call, Response<Result<List<String>>> response) {
@@ -85,9 +83,9 @@ public class PanelListOrder extends javax.swing.JPanel {
     private void updateDataList(String Id, List<String> data) {
         DefaultListModel<Bill> model = new DefaultListModel<>();
         orders = getBill(Id, data);
-        for (Bill b : orders) {
+        orders.forEach((Bill b) -> {
             model.addElement(b);
-        }
+        });
         listOrderAvaliable.setModel(model);
         listOrderSelected.setModel(new DefaultListModel<>());
     }
@@ -273,9 +271,21 @@ public class PanelListOrder extends javax.swing.JPanel {
     private javax.swing.JList<Bill> listOrderSelected;
     // End of variables declaration//GEN-END:variables
 
+    /**
+     * 
+     * Phương thức đươc gọi khi click button ">" chọn file để kí
+     * Phương thức kiểm tra file đã tồn tại ở danh sách file được chọn chưa
+     * @param elementAt 
+     *      File được chọn
+     * @param  orderSelectedModel 
+     *      Danh sách files đã chọn
+     * @return 
+     *      true    file đã được chọn
+     *      false   file chưa chọn
+     */
     private boolean checkExits(Bill elementAt, DefaultListModel<Bill> orderSelectedModel) {
         for (int i = 0; i < orderSelectedModel.getSize(); i++) {
-            if (orderSelectedModel.getElementAt(i).getId() == elementAt.getId()) {
+            if (orderSelectedModel.getElementAt(i).getId().equals(elementAt.getId())) {
                 return true;
             }
         }
@@ -299,14 +309,20 @@ public class PanelListOrder extends javax.swing.JPanel {
         frame.attachPanel();
     }
 
+    /**
+     *
+     * 
+     * 
+     * @return 
+     */
     public List<Bill> getOrderSelected() {
-        List<Bill> orders = new ArrayList<>();
+        List<Bill> files = new ArrayList<>();
 
         DefaultListModel<Bill> model = (DefaultListModel<Bill>) listOrderSelected.getModel();
         for (int i = 0; i < model.getSize(); i++) {
-            orders.add(model.get(i));
+            files.add(model.get(i));
         }
-        return orders;
+        return files;
     }
 
     private List<Bill> getBill(String Id, List<String> data) {

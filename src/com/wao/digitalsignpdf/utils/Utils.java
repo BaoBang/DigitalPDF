@@ -58,8 +58,7 @@ public class Utils {
         return keys;
     }
 
-    public static File getFileFromURL(String order) {
-        try {
+    public static File getFileFromURL(String order) throws IOException {
             URL url = new URL(order);
             URLConnection connection = url.openConnection();
             InputStream in = connection.getInputStream();
@@ -78,10 +77,5 @@ public class Utils {
             fos.flush();
             fos.close();
             return file;
-        } catch (IOException ex) {
-            File myFile = new File(order);
-            return myFile;
-        }
-
     }
 }
