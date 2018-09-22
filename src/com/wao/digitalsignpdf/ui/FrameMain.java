@@ -5,16 +5,21 @@
  */
 package com.wao.digitalsignpdf.ui;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.Claim;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.wao.digitalsignpdf.api.APIService;
 import com.wao.digitalsignpdf.api.ApiUtils;
 import java.awt.BorderLayout;
 import java.awt.Image;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
@@ -29,15 +34,19 @@ public class FrameMain extends javax.swing.JFrame {
     private final JPanel[] panels = new JPanel[panelCount];
     DialogLoading dialogLoading;
     APIService apiService;
+    private String Id;
 
     /**
      * Creates new form FrameMain
+     *
+     * @param id
      */
-    public FrameMain() {
+    public FrameMain(String id) {
         initComponents();
         // TODO add your handling code here:
         // khởi tạo loading dialog
         setIcon();
+        this.Id = id;
         dialogLoading = new DialogLoading(this, true, "Loading...");
         apiService = ApiUtils.getAPIService();
         // Khởi tạo Panel Danh sách hóa đơn
@@ -64,8 +73,9 @@ public class FrameMain extends javax.swing.JFrame {
      * @param message
      */
     public void showLoading(String message) {
-        dialogLoading.setVisible(true);
+        
         dialogLoading.setMessage(message);
+        dialogLoading.setVisible(true);
 
     }
 
@@ -104,6 +114,18 @@ public class FrameMain extends javax.swing.JFrame {
 
     public void setTextButtonNext(String text) {
         btnNext.setText(text);
+    }
+
+    public String getId() {
+        return Id;
+    }
+
+    public void setId(String Id) {
+        this.Id = Id;
+    }
+    
+    public boolean isShowLoading(){
+        return dialogLoading.isShowing();
     }
 
     /**
@@ -231,28 +253,27 @@ public class FrameMain extends javax.swing.JFrame {
                     break;
                 }
             }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(FrameMain.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(FrameMain.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(FrameMain.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(FrameMain.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-
         /* Create and display the form */
+//        if (args == null || args.length == 0) {
+//            JOptionPane.showMessageDialog(null, "Không lấy được token.");
+//            return;
+//        }
+        Algorithm algorithm = Algorithm.HMAC256("!@#123");
+        JWTVerifier verifier = JWT.require(algorithm)
+                .build(); //Reusable verifier instance
+
+//        DecodedJWT jwt = verifier.verify(args[0]);
+        DecodedJWT jwt = verifier.verify("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ3YW8iLCJhdWQiOiJiYW9iYW5nIiwiaWQiOiIyOTUwMSwgMjk1MDIsIDI5NTAzIiwidXJsIjoiaHR0cDovL2FwaS5lcHJvY29uLnVzL0RpZ1Npbi8ifQ.Gm3zxBnBOBAqz1oDbtJNZXqP3RDeiSj2LilFJc3egm8");
+        Map<String, Claim> headerClaims = jwt.getClaims();
+        String id = headerClaims.get("id").as(String.class);
         java.awt.EventQueue.invokeLater(() -> {
-            FrameMain main = new FrameMain();
-            String s = "";
-            
+            FrameMain main = new FrameMain(id);
             main.setLocationRelativeTo(null);
             main.setVisible(true);
-            for(int i = 0; i < args.length; i++){
-                s += args[i];
-            }
-            JOptionPane.showMessageDialog(main, s);
         });
     }
 

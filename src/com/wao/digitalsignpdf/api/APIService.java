@@ -5,13 +5,16 @@
  */
 package com.wao.digitalsignpdf.api;
 
-import com.wao.digitalsignpdf.api.response.Bill;
+import com.wao.digitalsignpdf.api.response.Result;
+import com.wao.digitalsignpdf.api.requestbody.GetFileBody;
+import com.wao.digitalsignpdf.api.response.FileResponse;
 import java.util.List;
-import okhttp3.RequestBody;
+import okhttp3.MultipartBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
-import retrofit2.http.GET;
+import retrofit2.http.Multipart;
 import retrofit2.http.POST;
+import retrofit2.http.Part;
 
 /**
  *
@@ -19,9 +22,10 @@ import retrofit2.http.POST;
  */
 public interface APIService {
 
-    @GET("/bill")
-    Call<EndPoint<List<Bill>>> getBills();
+    @POST("GetFiles")
+    Call<Result<List<String>>> getBills(@Body GetFileBody body);
 
-    @POST("/upload/")
-    Call<EndPoint<String>> upload(@Body RequestBody body);
+    @Multipart
+    @POST("Upload")
+    Call<Result<FileResponse>> upload(@Part MultipartBody.Part file);
 }

@@ -7,7 +7,6 @@ package com.wao.digitalsignpdf.ui;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
-import javax.swing.WindowConstants;
 
 /**
  *
@@ -23,6 +22,7 @@ public class DialogLoading extends java.awt.Dialog {
      *
      * @param parent
      * @param modal
+     * @param message
      */
     public DialogLoading(java.awt.Frame parent, boolean modal, String message) {
         super(parent, ModalityType.APPLICATION_MODAL);
@@ -41,7 +41,7 @@ public class DialogLoading extends java.awt.Dialog {
     public void setMessage(String message){
         if(message != null && !message.equals("")){
             txtMessage.setText(message);
-            setTitle(message);
+            setTitle("Thông báo");
         }else{
             txtMessage.setText(this.message);
             setTitle("");
@@ -98,18 +98,6 @@ public class DialogLoading extends java.awt.Dialog {
         setVisible(false);
         dispose();
     }//GEN-LAST:event_closeDialog
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        java.awt.EventQueue.invokeLater(() -> {
-            DialogLoading dialog = new DialogLoading(new java.awt.Frame(), true, "Loading...");
-
-            dialog.setVisible(true);
-        });
-    }
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;

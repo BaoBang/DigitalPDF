@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<jnlp codebase="$$codebase" href="launch.jnlp" spec="1.0+">
+    <information>
+        <title>DigitalSignPDF</title>
+        <vendor>BaoBang</vendor>
+        <homepage href=""/>
+        <description>DigitalSignPDF</description>
+        <description kind="short">DigitalSignPDF</description>
+    <icon href="logo.png" kind="default"/>
+</information>
+    <update check="always"/>
+    <security>
+<all-permissions/>
+</security>
+    <resources>
+        <j2se version="1.8+"/>
+        <jar href="DigitalSignPDF.jar" main="true"/>
+    <jar href="lib/pdfbox-2.0.11.jar"/>
+<jar href="lib/fontbox-2.0.11.jar"/>
+<jar href="lib/retrofit-2.2.0.jar"/>
+<jar href="lib/okhttp-3.6.0.jar"/>
+<jar href="lib/gson-2.8.4.jar"/>
+<jar href="lib/usb4java-javax-1.2.0.jar"/>
+<jar href="lib/okio-1.11.0.jar"/>
+<jar href="lib/java-jwt-3.4.0.jar"/>
+<jar href="lib/converter-gson-2.2.0.jar"/>
+<jar href="lib/commons-logging-1.2.jar"/>
+<jar href="lib/jackson-databind-2.9.6.jar"/>
+<jar href="lib/jackson-core-2.9.6.jar"/>
+<jar href="lib/jackson-annotations-2.9.0.jar"/>
+<jar href="lib/commons-codec-1.11.jar"/>
+<extension href="jnlpcomponent1.jnlp"/>
+<extension href="jnlpcomponent2.jnlp"/>
+</resources>
+    <application-desc main-class="com.wao.digitalsignpdf.ui.FrameMain">
+    </application-desc>
+</jnlp>

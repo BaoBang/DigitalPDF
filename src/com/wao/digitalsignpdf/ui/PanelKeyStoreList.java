@@ -3,6 +3,8 @@ package com.wao.digitalsignpdf.ui;
 import com.wao.digitalpdf.callback.UploadFileCallBack;
 import com.wao.digitalsignpdf.CreateSignature;
 import com.wao.digitalsignpdf.api.response.Bill;
+import com.wao.digitalsignpdf.api.response.Data;
+import com.wao.digitalsignpdf.api.response.FileResponse;
 import com.wao.digitalsignpdf.utils.UploadFile;
 import com.wao.digitalsignpdf.utils.Utils;
 import java.awt.event.ActionListener;
@@ -13,13 +15,12 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
-import okhttp3.MultipartBody;
-import okhttp3.RequestBody;
 
 /**
  *
@@ -59,10 +60,7 @@ public class PanelKeyStoreList extends javax.swing.JPanel {
     private void waitForNotifying() {
         Thread t = new Thread(() -> {
             while (true) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                }
+
                 if (File.listRoots().length > oldListRoot.length) {
                     oldListRoot = File.listRoots();
                     try {
@@ -155,47 +153,50 @@ public class PanelKeyStoreList extends javax.swing.JPanel {
             JOptionPane.showMessageDialog(frame, "Vui lòng chọn chữ kí số");
             return;
         }
-        try {
-            String alias = aliases.get(listKeyStores.getSelectedIndex());
-            List<Bill> orders = frame.getPanelListOrder().getOrderSelected();
-            totalOrders = orders.size();
-            countOrders = 0;
-            error = "";
-            // load the keystore
-            KeyStore keystore = KeyStore.getInstance("Windows-MY");
+        java.awt.EventQueue.invokeLater(() -> {
+            frame.showLoading(null);
+        });
 
-            keystore.load(null, null);
-            java.awt.EventQueue.invokeLater(() -> {
-                frame.showLoading(null);
-            });
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String alias = aliases.get(listKeyStores.getSelectedIndex());
+                List<Bill> orders = frame.getPanelListOrder().getOrderSelected();
+                totalOrders = orders.size();
+                countOrders = 0;
+                error = "";
 
-            for (Bill b : orders) {
-                // sign PDF
-                CreateSignature signing = new CreateSignature(keystore, alias, "123456781".toCharArray());
-                signing.setExternalSigning(true);
-                File inFile = Utils.getFileFromURL(b.getLink());
-             
-                UploadFile file = new UploadFile(signing, frame.getAPIService(), inFile, new UploadFileCallBack() {
-                    @Override
-                    public void onSuccess() {
-                        increaseOrderUploaded();
-                        checkUploadedSuccess();
+                try {
+                    KeyStore keystore = Utils.getKeyStore();
+                    for (Bill b : orders) {
+                        // sign PDF
+                        CreateSignature signing = new CreateSignature(keystore, alias, "".toCharArray());
+                        signing.setExternalSigning(true);
+                        File inFile = Utils.getFileFromURL(b.getLink());
+                        UploadFile file = new UploadFile(signing, frame.getAPIService(), inFile, new UploadFileCallBack() {
+                            @Override
+                            public void onSuccess(Data<FileResponse> data) {
+                                increaseOrderUploaded();
+                                checkUploadedSuccess();
+                            }
+
+                            @Override
+                            public void onFailed(String message) {
+                                error = error + message + "\r\n";
+                                increaseOrderUploaded();
+                                checkUploadedSuccess();
+                            }
+                        });
+                        file.start();
                     }
-
-                    @Override
-                    public void onFailed(String message) {
-                        error = error + message + "\r\n";
-                        increaseOrderUploaded();
-                        checkUploadedSuccess();
-                    }
-                });
-                file.start();
+                    
+                } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableKeyException ex) {
+                    frame.hideLoading();
+                    JOptionPane.showMessageDialog(frame, ex.getMessage());
+                }
             }
-
-        } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException | UnrecoverableKeyException ex) {
-            Logger.getLogger(PanelKeyStoreList.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
+        });
+        thread.start();
     }
 
     public void increaseOrderUploaded() {
@@ -209,7 +210,7 @@ public class PanelKeyStoreList extends javax.swing.JPanel {
             });
             if (error.equals("")) {
                 JOptionPane.showMessageDialog(frame, "Đăng kí thành công");
-            }else{
+            } else {
                 JOptionPane.showMessageDialog(frame, error);
             }
         }

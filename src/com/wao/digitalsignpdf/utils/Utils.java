@@ -28,12 +28,27 @@ import java.util.logging.Logger;
  * @author BaoBang
  */
 public class Utils {
+    
+    public static KeyStore getKeyStore() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException{
+        KeyStore keyStore = null;
+        
+        String osName = System.getProperty("os.name");
+        if(osName.contains("Window")){
+            keyStore = KeyStore.getInstance("Windows-MY");
+            keyStore.load(null, null);
+        } else if(osName.contains("Linux")){
+            
+        }
+        return keyStore;
+    }
 
     public static List<String> getKeystores() {
         List<String> keys = new ArrayList<>();
         try {
-            KeyStore personalKS = KeyStore.getInstance("Window-MY");
-            personalKS.load(null, null);
+            KeyStore personalKS = getKeyStore();
+            if(personalKS == null){
+                return keys;
+            }
             Enumeration<String> enums = personalKS.aliases();
             keys = Collections.list(enums);
         } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException ex) {

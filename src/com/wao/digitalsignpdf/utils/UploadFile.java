@@ -8,12 +8,10 @@ package com.wao.digitalsignpdf.utils;
 import com.wao.digitalpdf.callback.UploadFileCallBack;
 import com.wao.digitalsignpdf.CreateSignature;
 import com.wao.digitalsignpdf.api.APIService;
-import com.wao.digitalsignpdf.api.EndPoint;
-import com.wao.digitalsignpdf.ui.PanelKeyStoreList;
+import com.wao.digitalsignpdf.api.response.Result;
+import com.wao.digitalsignpdf.api.response.FileResponse;
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
@@ -26,23 +24,22 @@ import retrofit2.Response;
  * @author BaoBang
  */
 public class UploadFile extends Thread {
-
+    
     private CreateSignature signing;
     private APIService aPIService;
     private File file;
     private UploadFileCallBack callBack;
-
+    
     public UploadFile(CreateSignature signing, APIService apiService, File outFile, UploadFileCallBack callBack) {
         this.aPIService = apiService;
         this.file = outFile;
         this.callBack = callBack;
         this.signing = signing;
     }
-
+    
     @Override
     public void run() {
         try {
-            super.run();
             //To change body of generated methods, choose Tools | Templates.
             String name = file.getName();
             String substring = name.substring(0, name.lastIndexOf('.'));
@@ -54,32 +51,38 @@ public class UploadFile extends Thread {
                             MediaType.parse("multipart/form-data"),
                             outFile
                     );
-            RequestBody data = new MultipartBody.Builder()
-                    .setType(MultipartBody.FORM)
-                    .addFormDataPart("file", outFile.getName(), requestFile)
-                    .build();
-
-            aPIService.upload(data).enqueue(new Callback<EndPoint<String>>() {
+            MultipartBody.Part body
+                    = MultipartBody.Part.createFormData("file_upload", file.getName(), requestFile);
+            
+            aPIService.upload(body).enqueue(new Callback<Result<FileResponse>>() {
                 @Override
-                public void onResponse(Call<EndPoint<String>> call, Response<EndPoint<String>> response) {
-
-                    System.out.println(response.body().getMessage());
-                    System.out.println(response.body().getData());
-                    outFile.delete();
-                    callBack.onSuccess();
+                public void onResponse(Call<Result<FileResponse>> call, Response<Result<FileResponse>> response) {
+                    
+                    try {
+                        outFile.delete();
+                        if (response.body().getResult().getErrorCode() == 0) {
+                            System.out.println(response.body().getResult().getData().toString());
+                            callBack.onSuccess(response.body().getResult());
+                            file.delete();
+                        } else {
+                            callBack.onFailed(response.body().getResult().getErrorDescription());
+                        }
+                    } catch (Exception e) {
+                        callBack.onFailed(e.getMessage());
+                    }
                 }
-
+                
                 @Override
-                public void onFailure(Call<EndPoint<String>> call, Throwable t) {
+                public void onFailure(Call<Result<FileResponse>> call, Throwable t) {
                     callBack.onFailed(t.getMessage());
                     System.out.println(t.getMessage());
                     outFile.delete();
-
+                    
                 }
             });
         } catch (IOException ex) {
             callBack.onFailed(ex.getMessage());
         }
     }
-
+    
 }

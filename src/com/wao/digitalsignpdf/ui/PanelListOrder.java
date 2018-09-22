@@ -5,7 +5,8 @@
  */
 package com.wao.digitalsignpdf.ui;
 
-import com.wao.digitalsignpdf.api.EndPoint;
+import com.wao.digitalsignpdf.api.response.Result;
+import com.wao.digitalsignpdf.api.requestbody.GetFileBody;
 import com.wao.digitalsignpdf.api.response.Bill;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ import retrofit2.Response;
  * @author BaoBang
  */
 public class PanelListOrder extends javax.swing.JPanel {
-    
+
     List<Bill> orders;
     private final FrameMain frame;
     private final ActionListener nextActionListener;
@@ -37,40 +38,53 @@ public class PanelListOrder extends javax.swing.JPanel {
         initComponents();
         this.frame = frame;
         orders = new ArrayList<>();
-        frame.getAPIService().getBills().enqueue(new Callback<EndPoint<List<Bill>>>() {
+
+        java.awt.EventQueue.invokeLater(() -> {
+            frame.showLoading("Tải danh sách file");
+        });
+        
+
+        frame.getAPIService().getBills(new GetFileBody(frame.getId())).enqueue(new Callback<Result<List<String>>>() {
             @Override
-            public void onResponse(Call<EndPoint<List<Bill>>> call, Response<EndPoint<List<Bill>>> response) {
+            public void onResponse(Call<Result<List<String>>> call, Response<Result<List<String>>> response) {
+                java.awt.EventQueue.invokeLater(() -> {
+                    frame.hideLoading();
+                });
                 if (response.isSuccessful()) {
-                    EndPoint<List<Bill>> endPoint = response.body();
-                    if (endPoint.getStatusCode() == 0) {
-                        updateDataList(endPoint.getData());
+                    Result<List<String>> result = response.body();
+
+                    if (result.getResult().getErrorCode() == 0) {
+                        updateDataList(frame.getId(), result.getResult().getData());
                     } else {
-                        
-                        JOptionPane.showMessageDialog(frame, endPoint.getMessage());
+                        JOptionPane.showMessageDialog(frame, result.getResult().getErrorDescription());
                     }
                 } else {
                     JOptionPane.showMessageDialog(frame, response.message());
                 }
             }
-            
+
             @Override
-            public void onFailure(Call<EndPoint<List<Bill>>> call, Throwable t) {
+            public void onFailure(Call<Result<List<String>>> call, Throwable t) {
+                java.awt.EventQueue.invokeLater(() -> {
+                    frame.hideLoading();
+                });
+                frame.hideLoading();
                 JOptionPane.showMessageDialog(frame, t.getMessage());
             }
-            
+
         });
         previousActionListener = (e) -> {
             doClickPrevious();
         };
-        
+
         nextActionListener = (e) -> {
             doClickNext();
         };
     }
-    
-    private void updateDataList(List<Bill> data) {
+
+    private void updateDataList(String Id, List<String> data) {
         DefaultListModel<Bill> model = new DefaultListModel<>();
-        orders = data;
+        orders = getBill(Id, data);
         for (Bill b : orders) {
             model.addElement(b);
         }
@@ -267,13 +281,13 @@ public class PanelListOrder extends javax.swing.JPanel {
         }
         return false;
     }
-    
+
     private void doClickPrevious() {
         frame.removeListener(previousActionListener, nextActionListener);
         frame.previousStep();
         frame.attachPanel();
     }
-    
+
     private void doClickNext() {
         DefaultListModel<Bill> model = (DefaultListModel<Bill>) listOrderSelected.getModel();
         if (model.getSize() == 0) {
@@ -284,15 +298,27 @@ public class PanelListOrder extends javax.swing.JPanel {
         frame.nextStep();
         frame.attachPanel();
     }
-    
+
     public List<Bill> getOrderSelected() {
         List<Bill> orders = new ArrayList<>();
-        
+
         DefaultListModel<Bill> model = (DefaultListModel<Bill>) listOrderSelected.getModel();
         for (int i = 0; i < model.getSize(); i++) {
             orders.add(model.get(i));
         }
         return orders;
     }
-    
+
+    private List<Bill> getBill(String Id, List<String> data) {
+        List<Bill> bills = new ArrayList<>();
+        String items[] = Id.split(",");
+        if (items.length == data.size()) {
+            for (int i = 0; i < items.length; i++) {
+                Bill bill = new Bill(items[i], data.get(i));
+                bills.add(bill);
+            }
+        }
+        return bills;
+    }
+
 }

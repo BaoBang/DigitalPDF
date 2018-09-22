@@ -5,11 +5,14 @@
  */
 package com.wao.digitalpdf.callback;
 
+import com.wao.digitalsignpdf.api.response.Data;
+import com.wao.digitalsignpdf.api.response.FileResponse;
+
 /**
  *
  * @author BaoBang
  */
 public interface UploadFileCallBack {
-    void onSuccess();
+    void onSuccess(Data<FileResponse> fileResponse);
     void onFailed(String message);
 }

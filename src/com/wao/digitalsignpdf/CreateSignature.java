@@ -5,13 +5,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.util.Arrays;
 import java.util.Calendar;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -81,7 +79,7 @@ public class CreateSignature extends CreateSignatureBase {
      * @param tsaUrl optional TSA url
      * @throws IOException if the input file could not be read
      */
-    public void signDetached(File inFile, File outFile, String tsaUrl) throws IOException {
+    public void signDetached(File inFile, File outFile, String tsaUrl) throws IOException{
         if (inFile == null || !inFile.exists()) {
             throw new FileNotFoundException("Document for signing does not exist");
         }
@@ -140,57 +138,57 @@ public class CreateSignature extends CreateSignatureBase {
             document.saveIncremental(output);
         }
     }
-
-    public static void main(String[] args) throws IOException, GeneralSecurityException {
-        if (args.length < 3) {
-            usage();
-            System.exit(1);
-        }
-
-        String tsaUrl = null;
-        boolean externalSig = false;
-        for (int i = 0; i < args.length; i++) {
-            System.out.println(Arrays.toString(args));
-            if (args[i].equals("-tsa")) {
-                i++;
-                if (i >= args.length) {
-                    usage();
-                    System.exit(1);
-                }
-                tsaUrl = args[i];
-            }
-            if (args[i].equals("-e")) {
-                externalSig = true;
-            }
-        }
-
-        // load the keystore
-        KeyStore keystore = KeyStore.getInstance("Windows-MY");
-        try {
-            keystore.load(null, null);
-        } catch (NoSuchAlgorithmException | CertificateException | IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        // TODO Auto-generated catch block
-        // TODO Auto-generated catch block
-        //KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-        // TODO alias command line argument
-        
-        //KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
-        // TODO alias command line argument
-
-        // sign PDF
-        CreateSignature signing = new CreateSignature(keystore,"", "12".toCharArray());
-        signing.setExternalSigning(externalSig);
-
-        File inFile = new File(args[2]);
-        String name = inFile.getName();
-        String substring = name.substring(0, name.lastIndexOf('.'));
-
-        File outFile = new File(inFile.getParent(), substring + "_signed.pdf");
-        signing.signDetached(inFile, outFile, tsaUrl);
-    }
+//
+//    public static void main(String[] args) throws IOException, GeneralSecurityException {
+//        if (args.length < 3) {
+//            usage();
+//            System.exit(1);
+//        }
+//
+//        String tsaUrl = null;
+//        boolean externalSig = false;
+//        for (int i = 0; i < args.length; i++) {
+//            System.out.println(Arrays.toString(args));
+//            if (args[i].equals("-tsa")) {
+//                i++;
+//                if (i >= args.length) {
+//                    usage();
+//                    System.exit(1);
+//                }
+//                tsaUrl = args[i];
+//            }
+//            if (args[i].equals("-e")) {
+//                externalSig = true;
+//            }
+//        }
+//
+//        // load the keystore
+//        KeyStore keystore = KeyStore.getInstance("Windows-MY");
+//        try {
+//            keystore.load(null, null);
+//        } catch (NoSuchAlgorithmException | CertificateException | IOException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
+//        // TODO Auto-generated catch block
+//        // TODO Auto-generated catch block
+//        //KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+//        // TODO alias command line argument
+//        
+//        //KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+//        // TODO alias command line argument
+//
+//        // sign PDF
+//        CreateSignature signing = new CreateSignature(keystore,"", "12".toCharArray());
+//        signing.setExternalSigning(externalSig);
+//
+//        File inFile = new File(args[2]);
+//        String name = inFile.getName();
+//        String substring = name.substring(0, name.lastIndexOf('.'));
+//
+//        File outFile = new File(inFile.getParent(), substring + "_signed.pdf");
+//        signing.signDetached(inFile, outFile, tsaUrl);
+//    }
 
     private static void usage() {
         System.err.println("usage: java " + CreateSignature.class.getName() + " "

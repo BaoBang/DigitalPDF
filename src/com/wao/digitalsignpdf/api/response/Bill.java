@@ -11,22 +11,22 @@ package com.wao.digitalsignpdf.api.response;
  */
 public class Bill {
 
-    private int id;
+    private String id;
     private String link;
 
     public Bill() {
     }
 
-    public Bill(int id, String link) {
+    public Bill(String id, String link) {
         this.id = id;
         this.link = link;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -40,10 +40,10 @@ public class Bill {
 
     @Override
     public String toString() {
-        String[] items = link.split("\\\\");
+        String[] items = link.split("/");
         if (items.length > 0) {
             String name = items[items.length - 1];
-            return name.substring(0, name.lastIndexOf('.'));
+            return name;
         }
         return link; //To change body of generated methods, choose Tools | Templates.
     }
