@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 /**
@@ -47,7 +46,7 @@ public class FrameMain extends javax.swing.JFrame {
         // khởi tạo loading dialog
         setIcon();
         this.Id = id;
-        dialogLoading = new DialogLoading(this, true, "Loading...");
+        dialogLoading = new DialogLoading(this, true, "Tải dữ liệu...");
         apiService = ApiUtils.getAPIService();
         // Khởi tạo Panel Danh sách hóa đơn
         PanelListOrder listOrder = new PanelListOrder(this);

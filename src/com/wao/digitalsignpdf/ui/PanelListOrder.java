@@ -8,6 +8,7 @@ package com.wao.digitalsignpdf.ui;
 import com.wao.digitalsignpdf.api.response.Result;
 import com.wao.digitalsignpdf.api.requestbody.GetFileBody;
 import com.wao.digitalsignpdf.api.response.Bill;
+import com.wao.digitalsignpdf.utils.MessageConstant;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,9 +39,10 @@ public class PanelListOrder extends javax.swing.JPanel {
         initComponents();
         this.frame = frame;
         orders = new ArrayList<>();
-
+        listOrderAvaliable.setModel(new DefaultListModel<>());
+        listOrderSelected.setModel(new DefaultListModel<>());
         java.awt.EventQueue.invokeLater(() -> {
-            frame.showLoading("Tải danh sách file");
+            frame.showLoading(MessageConstant.DOWNLOAD_FILE_MESSAGE);
         });
         frame.getAPIService().getBills(new GetFileBody(frame.getId())).enqueue(new Callback<Result<List<String>>>() {
             @Override
@@ -54,10 +56,11 @@ public class PanelListOrder extends javax.swing.JPanel {
                     if (result.getResult().getErrorCode() == 0) {
                         updateDataList(frame.getId(), result.getResult().getData());
                     } else {
-                        JOptionPane.showMessageDialog(frame, result.getResult().getErrorDescription());
+                        JOptionPane.showMessageDialog(frame, result.getResult().getErrorDescription(), MessageConstant.ERROR_TITLE, JOptionPane.ERROR_MESSAGE);
                     }
                 } else {
-                    JOptionPane.showMessageDialog(frame, response.message());
+                    JOptionPane.showMessageDialog(frame, response.message(), MessageConstant.ERROR_TITLE, JOptionPane.ERROR_MESSAGE);
+
                 }
             }
 
@@ -67,7 +70,8 @@ public class PanelListOrder extends javax.swing.JPanel {
                     frame.hideLoading();
                 });
                 frame.hideLoading();
-                JOptionPane.showMessageDialog(frame, t.getMessage());
+                JOptionPane.showMessageDialog(frame, MessageConstant.NOT_CONNECT_TO_SERVER_EXCEPTION, MessageConstant.ERROR_TITLE, JOptionPane.ERROR_MESSAGE);
+                System.exit(0);
             }
 
         });
@@ -272,16 +276,13 @@ public class PanelListOrder extends javax.swing.JPanel {
     // End of variables declaration//GEN-END:variables
 
     /**
-     * 
-     * Phương thức đươc gọi khi click button ">" chọn file để kí
-     * Phương thức kiểm tra file đã tồn tại ở danh sách file được chọn chưa
-     * @param elementAt 
-     *      File được chọn
-     * @param  orderSelectedModel 
-     *      Danh sách files đã chọn
-     * @return 
-     *      true    file đã được chọn
-     *      false   file chưa chọn
+     *
+     * Phương thức đươc gọi khi click button ">" chọn file để kí Phương thức
+     * kiểm tra file đã tồn tại ở danh sách file được chọn chưa
+     *
+     * @param elementAt File được chọn
+     * @param orderSelectedModel Danh sách files đã chọn
+     * @return true file đã được chọn false file chưa chọn
      */
     private boolean checkExits(Bill elementAt, DefaultListModel<Bill> orderSelectedModel) {
         for (int i = 0; i < orderSelectedModel.getSize(); i++) {
@@ -301,7 +302,7 @@ public class PanelListOrder extends javax.swing.JPanel {
     private void doClickNext() {
         DefaultListModel<Bill> model = (DefaultListModel<Bill>) listOrderSelected.getModel();
         if (model.getSize() == 0) {
-            JOptionPane.showMessageDialog(frame, "Vui lòng chọn hóa đơn cần kí");
+            JOptionPane.showMessageDialog(frame, MessageConstant.NONE_CHOOSE_ITEM_MESSAGE, MessageConstant.WARNING_TITLE, JOptionPane.WARNING_MESSAGE);
             return;
         }
         frame.removeListener(previousActionListener, nextActionListener);
@@ -311,9 +312,9 @@ public class PanelListOrder extends javax.swing.JPanel {
 
     /**
      *
-     * 
-     * 
-     * @return 
+     * Lấy danh sách file được chọn
+     *
+     * @return List<Bill> Danh sách file được chọn
      */
     public List<Bill> getOrderSelected() {
         List<Bill> files = new ArrayList<>();
@@ -325,6 +326,15 @@ public class PanelListOrder extends javax.swing.JPanel {
         return files;
     }
 
+    /**
+     * Phương thức tạo một danh sách Bill danh sách id từ token và danh sách url
+     * từ api
+     *
+     * @param Id danh sách id của các file
+     * @param data danh sách url của các file
+     *
+     * @return List<Bill> danh sách Bill
+     */
     private List<Bill> getBill(String Id, List<String> data) {
         List<Bill> bills = new ArrayList<>();
         String items[] = Id.split(",");

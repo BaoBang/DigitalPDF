@@ -17,6 +17,7 @@ public class DialogLoading extends java.awt.Dialog {
     ImageIcon icon;
     JLabel label;
     String message;
+
     /**
      * Creates new form DialogLoading
      *
@@ -27,24 +28,23 @@ public class DialogLoading extends java.awt.Dialog {
     public DialogLoading(java.awt.Frame parent, boolean modal, String message) {
         super(parent, ModalityType.APPLICATION_MODAL);
         initComponents();
+
         this.message = message;
         init(parent);
     }
 
     private void init(java.awt.Frame parent) {
-        
+
         txtMessage.setText(message);
-        setTitle(message);
+        setTitle("Thông báo");
         this.setLocationRelativeTo(parent);
     }
-    
-    public void setMessage(String message){
-        if(message != null && !message.equals("")){
+
+    public void setMessage(String message) {
+        if (message != null && !message.equals("")) {
             txtMessage.setText(message);
-            setTitle("Thông báo");
-        }else{
+        } else {
             txtMessage.setText(this.message);
-            setTitle("");
         }
     }
 

@@ -1,15 +1,12 @@
 package com.wao.digitalsignpdf;
 
+import com.wao.digitalsignpdf.errorexception.SignFailedException;
+import com.wao.digitalsignpdf.utils.MessageConstant;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.Calendar;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -36,17 +33,10 @@ public class CreateSignature extends CreateSignatureBase {
      * @param keystore the pkcs12 keystore containing the signing certificate
      * @param alias the alias for the key
      * @param pin the password for recovering the key
-     * @throws KeyStoreException if the keystore has not been initialized
+     * @throws SignFailedException if the keystore has not been initialized
      * (loaded)
-     * @throws NoSuchAlgorithmException if the algorithm for recovering the key
-     * cannot be found
-     * @throws UnrecoverableKeyException if the given password is wrong
-     * @throws CertificateException if the certificate is not valid as signing
-     * time
-     * @throws IOException if no certificate could be found
      */
-    public CreateSignature(KeyStore keystore, String alias, char[] pin)
-            throws KeyStoreException, UnrecoverableKeyException, NoSuchAlgorithmException, CertificateException, IOException {
+    public CreateSignature(KeyStore keystore, String alias, char[] pin) throws SignFailedException {
         super(keystore, alias, pin);
     }
 
@@ -54,9 +44,9 @@ public class CreateSignature extends CreateSignatureBase {
      * Signs the given PDF file. Alters the original file on disk.
      *
      * @param file the PDF file to sign
-     * @throws IOException if the file could not be read or written
+     * @throws SignFailedException if the file could not be read or written
      */
-    public void signDetached(File file) throws IOException {
+    public void signDetached(File file) throws SignFailedException {
         signDetached(file, file, null);
     }
 
@@ -65,9 +55,9 @@ public class CreateSignature extends CreateSignatureBase {
      *
      * @param inFile input PDF file
      * @param outFile output PDF file
-     * @throws IOException if the input file could not be read
+     * @throws SignFailedException if the input file could not be read
      */
-    public void signDetached(File inFile, File outFile) throws IOException {
+    public void signDetached(File inFile, File outFile) throws SignFailedException {
         signDetached(inFile, outFile, null);
     }
 
@@ -77,21 +67,21 @@ public class CreateSignature extends CreateSignatureBase {
      * @param inFile input PDF file
      * @param outFile output PDF file
      * @param tsaUrl optional TSA url
-     * @throws IOException if the input file could not be read
+     * @throws com.wao.digitalsignpdf.errorexception.SignFailedException
      */
-    public void signDetached(File inFile, File outFile, String tsaUrl) throws IOException{
+    public void signDetached(File inFile, File outFile, String tsaUrl) throws SignFailedException {
         if (inFile == null || !inFile.exists()) {
-            throw new FileNotFoundException("Document for signing does not exist");
+            throw new SignFailedException(MessageConstant.FILE_NOT_EXITS_EXCEPTION);
         }
-
         setTsaUrl(tsaUrl);
+        try (FileOutputStream fos = new FileOutputStream(outFile);
+                PDDocument doc = PDDocument.load(inFile);) {
 
-        FileOutputStream fos = new FileOutputStream(outFile);
-
-        // sign
-        PDDocument doc = PDDocument.load(inFile);
-        signDetached(doc, fos);
-        doc.close();
+            // sign
+            signDetached(doc, fos);
+        } catch (Exception e) {
+            throw new SignFailedException(MessageConstant.SIGN_FILE_FAILED_EXCEPTION, e);
+        }
     }
 
     public void signDetached(PDDocument document, OutputStream output)

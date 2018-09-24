@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.wao.digitalpdf.callback;
+package com.wao.digitalsignpdf.callback;
 
 import com.wao.digitalsignpdf.api.response.Data;
 import com.wao.digitalsignpdf.api.response.FileResponse;

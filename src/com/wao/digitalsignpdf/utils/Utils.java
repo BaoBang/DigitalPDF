@@ -5,7 +5,10 @@
  */
 package com.wao.digitalsignpdf.utils;
 
+import com.wao.digitalsignpdf.errorexception.CanNotGetKeyStoreException;
+import com.wao.digitalsignpdf.errorexception.URLInvalidException;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,45 +23,47 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author BaoBang
  */
 public class Utils {
-    
-    public static KeyStore getKeyStore() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException{
+
+    public static KeyStore getKeyStore() throws CanNotGetKeyStoreException {
         KeyStore keyStore = null;
-        
-        String osName = System.getProperty("os.name");
-        if(osName.contains("Window")){
-            keyStore = KeyStore.getInstance("Windows-MY");
-            keyStore.load(null, null);
-        } else if(osName.contains("Linux")){
-            
+        try {
+            String osName = System.getProperty("os.name");
+            if (osName.contains("Window")) {
+                keyStore = KeyStore.getInstance("Windows-MY");
+                keyStore.load(null, null);
+            } else if (osName.contains("Linux")) {
+
+            }
+        } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
+            throw new CanNotGetKeyStoreException(MessageConstant.KEYSTORE_NOT_FOUND_EXCEPTION, e);
         }
         return keyStore;
     }
 
-    public static List<String> getKeystores() {
+    public static List<String> getKeystores() throws CanNotGetKeyStoreException {
         List<String> keys = new ArrayList<>();
         try {
             KeyStore personalKS = getKeyStore();
-            if(personalKS == null){
+            if (personalKS == null) {
                 return keys;
             }
             Enumeration<String> enums = personalKS.aliases();
             keys = Collections.list(enums);
-        } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException ex) {
-            Logger.getLogger(Utils.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (KeyStoreException ex) {
+            throw new CanNotGetKeyStoreException(MessageConstant.KEYSTORE_NOT_FOUND_EXCEPTION, ex);
         }
 
         return keys;
     }
 
-    public static File getFileFromURL(String order) throws IOException {
+    public static File getFileFromURL(String order) throws URLInvalidException {
+        try {
             URL url = new URL(order);
             URLConnection connection = url.openConnection();
             InputStream in = connection.getInputStream();
@@ -76,6 +81,14 @@ public class Utils {
             in.close();
             fos.flush();
             fos.close();
+
             return file;
+        } catch (MalformedURLException ex) {
+            throw new URLInvalidException(order + " không đúng định dạng", ex);
+        } catch (FileNotFoundException ex) {
+            throw new URLInvalidException("Không tìm thấy file tại " + order, ex);
+        } catch (IOException ex) {
+            throw new URLInvalidException(MessageConstant.NOT_CONNECT_TO_SERVER_EXCEPTION, ex);
+        }
     }
 }

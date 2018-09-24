@@ -1,21 +1,20 @@
 package com.wao.digitalsignpdf.ui;
 
-import com.wao.digitalpdf.callback.UploadFileCallBack;
+import com.wao.digitalsignpdf.callback.UploadFileCallBack;
+import com.wao.digitalsignpdf.errorexception.CanNotGetKeyStoreException;
+import com.wao.digitalsignpdf.errorexception.SignFailedException;
+import com.wao.digitalsignpdf.errorexception.URLInvalidException;
 import com.wao.digitalsignpdf.CreateSignature;
 import com.wao.digitalsignpdf.api.response.Bill;
 import com.wao.digitalsignpdf.api.response.Data;
 import com.wao.digitalsignpdf.api.response.FileResponse;
+import com.wao.digitalsignpdf.utils.MessageConstant;
 import com.wao.digitalsignpdf.utils.UploadFile;
 import com.wao.digitalsignpdf.utils.Utils;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,7 +32,8 @@ public class PanelKeyStoreList extends javax.swing.JPanel {
 
     private final ActionListener nextActionListener;
     private final ActionListener previousActionListener;
-    private File[] oldListRoot = File.listRoots();
+
+    private int oldFileSize = 0;
 
     private int totalOrders = 0;
     private int countOrders = 1;
@@ -44,10 +44,10 @@ public class PanelKeyStoreList extends javax.swing.JPanel {
      *
      * @param frame
      */
-    public PanelKeyStoreList(FrameMain frame) {
+    public PanelKeyStoreList(FrameMain frame){
         initComponents();
         this.frame = frame;
-        getAliases();
+
         previousActionListener = (e) -> {
             doClickPrevious();
         };
@@ -55,24 +55,30 @@ public class PanelKeyStoreList extends javax.swing.JPanel {
             doClickNext();
         };
         waitForNotifying();
+
     }
 
+    /**
+     *
+     * Thread kiểm tra có usb được cắm hay rút ra Cập nhật lại danh sách alias
+     * nếu có sự kiện trên.
+     *
+     */
     private void waitForNotifying() {
         Thread t = new Thread(() -> {
             while (true) {
-
-                if (File.listRoots().length > oldListRoot.length) {
-                    oldListRoot = File.listRoots();
+                if (File.listRoots().length - oldFileSize != 0) {
+                    oldFileSize = File.listRoots().length;
                     try {
                         Thread.sleep(3000);
                     } catch (InterruptedException ex) {
                     }
-                    getAliases();
-                } else if (File.listRoots().length < oldListRoot.length) {
-                    oldListRoot = File.listRoots();
-                    getAliases();
+                    try {
+                        getAliases();
+                    } catch (CanNotGetKeyStoreException ex) {
+                        Logger.getLogger(PanelKeyStoreList.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
-
             }
         });
         t.start();
@@ -127,11 +133,16 @@ public class PanelKeyStoreList extends javax.swing.JPanel {
      */
 
     private void onPanleAdded(javax.swing.event.AncestorEvent evt) {//GEN-FIRST:event_onPanleAdded
-        // TODO add your handling code here:
-        getAliases();
-        frame.setTextButtonNext("Chọn");
+
+        frame.setTextButtonNext("Bắt đầu kí");
         frame.setNextButton(nextActionListener, true);
         frame.setPreviousButton(previousActionListener, true);
+        try {
+            // TODO add your handling code here:
+            getAliases();
+        } catch (CanNotGetKeyStoreException ex) {
+            JOptionPane.showConfirmDialog(frame, ex.getMessage(), MessageConstant.ERROR_TITLE, JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_onPanleAdded
 
     /**
@@ -150,50 +161,62 @@ public class PanelKeyStoreList extends javax.swing.JPanel {
      */
     private void doClickNext() {
         if (listKeyStores.getSelectedIndex() == -1) {
-            JOptionPane.showMessageDialog(frame, "Vui lòng chọn chữ kí số");
+            JOptionPane.showMessageDialog(frame, MessageConstant.NONE_CHOOSE_KEYSTORE_MESSAGE, MessageConstant.WARNING_TITLE, JOptionPane.WARNING_MESSAGE);
             return;
         }
         java.awt.EventQueue.invokeLater(() -> {
-            frame.showLoading(null);
+            frame.showLoading(MessageConstant.SIGNING_FILE_MESSAGE);
         });
 
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String alias = aliases.get(listKeyStores.getSelectedIndex());
-                List<Bill> orders = frame.getPanelListOrder().getOrderSelected();
-                totalOrders = orders.size();
-                countOrders = 0;
-                error = "";
+        Thread thread = new Thread(() -> {
+            String alias = aliases.get(listKeyStores.getSelectedIndex());
+            List<Bill> orders = frame.getPanelListOrder().getOrderSelected();
+            totalOrders = orders.size();
+            countOrders = 0;
+            error = "";
+            List<File> files = new ArrayList<>();
+            try {
+                KeyStore keystore = Utils.getKeyStore();
+                for (Bill b : orders) {
+                    // sign PDF
+                    CreateSignature signing = new CreateSignature(keystore, alias, "".toCharArray());
+                    signing.setExternalSigning(true);
+                    File inFile = Utils.getFileFromURL(b.getLink());
+                    files.add(inFile);
 
-                try {
-                    KeyStore keystore = Utils.getKeyStore();
-                    for (Bill b : orders) {
-                        // sign PDF
-                        CreateSignature signing = new CreateSignature(keystore, alias, "".toCharArray());
-                        signing.setExternalSigning(true);
-                        File inFile = Utils.getFileFromURL(b.getLink());
-                        UploadFile file = new UploadFile(signing, frame.getAPIService(), inFile, new UploadFileCallBack() {
-                            @Override
-                            public void onSuccess(Data<FileResponse> data) {
-                                increaseOrderUploaded();
-                                checkUploadedSuccess();
-                            }
+                    String name = inFile.getName();
+                    String substring = name.substring(0, name.lastIndexOf('.'));
+                    File outFile = new File(inFile.getParent(), substring + "_signed.pdf");
+                    files.add(outFile);
 
-                            @Override
-                            public void onFailed(String message) {
-                                error = error + message + "\r\n";
-                                increaseOrderUploaded();
-                                checkUploadedSuccess();
-                            }
-                        });
-                        file.start();
-                    }
-                    
-                } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableKeyException ex) {
-                    frame.hideLoading();
-                    JOptionPane.showMessageDialog(frame, ex.getMessage());
+                    signing.signDetached(inFile, outFile, null);
+
+                    UploadFile file = new UploadFile(frame.getAPIService(), outFile, new UploadFileCallBack() {
+                        @Override
+                        public void onSuccess(Data<FileResponse> data) {
+                            increaseOrderUploaded();
+                            checkUploadedSuccess(files);
+                        }
+
+                        @Override
+                        public void onFailed(String message) {
+                            error = error + message + "\r\n";
+                            increaseOrderUploaded();
+                            checkUploadedSuccess(files);
+                        }
+                    });
+                    file.start();
                 }
+
+            } catch (CanNotGetKeyStoreException | SignFailedException | URLInvalidException ex) {
+                frame.hideLoading();
+                JOptionPane.showMessageDialog(frame, ex.getMessage(), MessageConstant.ERROR_TITLE, JOptionPane.ERROR_MESSAGE);
+                for (int i = files.size() - 1; i >= 0; i--) {
+                    files.get(i).delete();
+                    files.remove(i);
+                }
+            } finally {
+                frame.hideLoading();
             }
         });
         thread.start();
@@ -203,15 +226,20 @@ public class PanelKeyStoreList extends javax.swing.JPanel {
         countOrders++;
     }
 
-    public void checkUploadedSuccess() {
+    public void checkUploadedSuccess(List<File> files) {
         if (countOrders == totalOrders) {
             java.awt.EventQueue.invokeLater(() -> {
                 frame.hideLoading();
             });
             if (error.equals("")) {
-                JOptionPane.showMessageDialog(frame, "Đăng kí thành công");
+                JOptionPane.showMessageDialog(frame, MessageConstant.SIGNING_SUCCESS_MESSAGE, MessageConstant.MESSAGE_TITLE, JOptionPane.INFORMATION_MESSAGE);
             } else {
-                JOptionPane.showMessageDialog(frame, error);
+                JOptionPane.showMessageDialog(frame, error, MessageConstant.ERROR_TITLE, JOptionPane.ERROR_MESSAGE);
+            }
+
+            for (int i = files.size() - 1; i >= 0; i--) {
+                files.get(i).delete();
+                files.remove(i);
             }
         }
     }
@@ -221,7 +249,7 @@ public class PanelKeyStoreList extends javax.swing.JPanel {
     private javax.swing.JList<String> listKeyStores;
     // End of variables declaration//GEN-END:variables
 
-    private void getAliases() {
+    private void getAliases() throws CanNotGetKeyStoreException {
         aliases = Utils.getKeystores();
         DefaultListModel<String> model = new DefaultListModel<>();
         model.clear();
