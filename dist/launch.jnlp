@@ -6,8 +6,7 @@
         <homepage href=""/>
         <description>DigitalSignPDF</description>
         <description kind="short">DigitalSignPDF</description>
-    <icon href="logo.png" kind="default"/>
-</information>
+    </information>
     <update check="always"/>
     <security>
 <all-permissions/>
@@ -31,6 +30,6 @@
 <extension href="jnlpcomponent1.jnlp"/>
 <extension href="jnlpcomponent2.jnlp"/>
 </resources>
-    <application-desc main-class="com.wao.digitalsignpdf.ui.FrameMain">
+    <application-desc main-class="com.wao.digitalsign.ui.MainApplication">
     </application-desc>
 </jnlp>
