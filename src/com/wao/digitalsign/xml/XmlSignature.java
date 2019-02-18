@@ -118,7 +118,7 @@ public class XmlSignature {
                 | SAXException | IOException | MarshalException
                 | XMLSignatureException | TransformerException ex) {
             Logger.getLogger(XmlSignature.class.getName()).log(Level.SEVERE, null, ex);
-            throw new SignFailedException(MessageConstant.SIGNING_FILE_MESSAGE, ex);
+            throw new SignFailedException(MessageConstant.SIGN_FILE_FAILED_EXCEPTION, ex);
         } finally {
             if (os != null) {
                 try {

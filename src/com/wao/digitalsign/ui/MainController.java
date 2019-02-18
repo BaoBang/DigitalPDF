@@ -14,6 +14,7 @@ import com.wao.digitalsign.api.requestbody.GetFileBody;
 import com.wao.digitalsign.api.response.Bill;
 import com.wao.digitalsign.api.response.Result;
 import com.wao.digitalsign.errorexception.CanNotGetKeyStoreException;
+import com.wao.digitalsign.utils.AppConstants;
 import com.wao.digitalsign.utils.MessageConstant;
 import com.wao.digitalsign.utils.Utils;
 import java.io.File;
@@ -97,12 +98,16 @@ public class MainController implements Initializable, Observer {
     }
 
     /**
-     * Thực hiện khi người dùng nhấn button Kí HĐ 1. Kiểm tra KeyStore alias có
-     * được chọn hay không? 1.1. Thông báo nếu chưa chọn 2. Kiểm tra hạn sử dụng
-     * của KeyStore 3. Kiểm tra tất cả các row đã kí chưa 3.1. Thông báo nếu tất
-     * cả đã được kí 4. Kiểm tra có row item nào được chọn hay không? 4.1. Thông
-     * báo nếu không có row item nào được chọn 5. Diable button Kí HĐ và button
-     * Thoát 6. Thực hiện kí HĐ
+     * Thực hiện khi người dùng nhấn button Kí HĐ 
+     * 1. Kiểm tra KeyStore alias có được chọn hay không?
+     *      1.1. Thông báo nếu chưa chọn 
+     * 2. Kiểm tra hạn sử dụng của KeyStore 
+     * 3. Kiểm tra tất cả các row đã kí chưa 
+     *      3.1. Thông báo nếu tất cả đã được kí 
+     * 4. Kiểm tra có row item nào được chọn hay không?
+     *      4.1. Thông báo nếu không có row item nào được chọn 
+     * 5. Diable button Kí HĐ và button Thoát 
+     * 6. Thực hiện kí HĐ
      *
      * @param event ActionEvent
      */
@@ -466,23 +471,24 @@ public class MainController implements Initializable, Observer {
     /**
      * Kiểm tra tất cả row đã hoàn tất kí hđ chưa
      *
+     * @return boolean
      */
     public boolean isEnableTask() {
-        if (!mRowItems.stream().noneMatch((rowItem) -> (rowItem.getIsChecked() && !rowItem.isFinshed()))) {
-            return false;
-        }
-        return true;
+        return mRowItems
+                .stream()
+                .noneMatch((rowItem) 
+                        -> (rowItem.getIsChecked() && !rowItem.isFinshed()));
     }
 
     /**
      * Kiểm tra tất cả row đã kí thành công chưa
      *
+     * @return boolean
      */
     public boolean isSucessedTask() {
-        if (!mRowItems.stream().noneMatch((rowItem) -> (!rowItem.isSucced()))) {
-            return false;
-        }
-        return true;
+        return mRowItems
+                .stream()
+                .noneMatch((rowItem) -> (!rowItem.isSucced()));
     }
 
     /**
@@ -494,7 +500,7 @@ public class MainController implements Initializable, Observer {
         if (!isEnableTask()) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-            stage.getIcons().add(new Image("/com/wao/digitalsignpdf/images/logo.png"));
+            stage.getIcons().add(new Image(AppConstants.IMAE_LOGO));
             alert.setTitle(MessageConstant.MESSAGE_TITLE);
             alert.setHeaderText("Đang thực hiện kí hóa đơn, không thể đóng ứng dụng.");
 

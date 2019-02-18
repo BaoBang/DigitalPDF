@@ -3,10 +3,7 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/IDE/netbean-workspace/DigitalSignPDF/src/com/wao/digitalsignpdf/ui/javafx/MainController.java</file>
-            <file>file:/D:/IDE/netbean-workspace/DigitalSignPDF/src/com/wao/digitalsignpdf/ui/javafx/FXUtils.java</file>
-            <file>file:/D:/IDE/netbean-workspace/DigitalSignPDF/src/com/wao/digitalsignpdf/ui/javafx/WorkIndicatorDialog.java</file>
-            <file>file:/D:/IDE/netbean-workspace/DigitalSignPDF/src/com/wao/digitalsignpdf/ui/javafx/MainApplication.java</file>
+            <file>file:/D:/IDE/netbean-workspace/DigitalSignPDF/src/com/wao/digitalsign/ui/RowItem.java</file>
         </group>
     </open-files>
 </project-private>
